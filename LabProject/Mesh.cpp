@@ -32,7 +32,7 @@ CMesh::CMesh(int nPolygons)
 	if (nPolygons > 0)
 	{
 		m_nPolygons = nPolygons;
-		m_ppPolygons = new CPolygon*[nPolygons];
+		m_ppPolygons = new CPolygon * [nPolygons];
 		m_nReferences = 0;
 	}
 	m_xmOOBB = BoundingOrientedBox(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -64,7 +64,7 @@ void CMesh::Render(HDC hDCFrameBuffer, XMFLOAT4X4& xmf4x4World, CCamera* pCamera
 		CVertex* pVertices = m_ppPolygons[j]->m_pVertices;
 
 		// POINT 배열 준비 (가급적 동적 할당보다는 고정 크기 배열이나 vector 권장)
-		POINT ptPoints[100]; // 정점이 100개 이하라고 가정
+		POINT ptPoints[200]; // 정점이 100개 이하라고 가정
 		int nValidVertices = 0;
 
 		for (int i = 0; i < nVertices; i++)

@@ -295,6 +295,7 @@ void CExplosiveObject::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 CBulletObject::CBulletObject(float fEffectiveRange)
 {
 	m_fBulletEffectiveRange = fEffectiveRange;
+	this->SetColor(255);
 }
 
 CBulletObject::~CBulletObject()
