@@ -493,7 +493,23 @@ CModelMesh::CModelMesh(const char* pFileName) : CMesh(0)
 		}
 		SetPolygon(i, pFace);
 	}
+	// 추가: 로드한 모든 정점을 돌며 OOBB 범위를 다시 계산
+	float minX = FLT_MAX, minY = FLT_MAX, minZ = FLT_MAX;
+	float maxX = -FLT_MAX, maxY = -FLT_MAX, maxZ = -FLT_MAX;
 
+	for (int i = 0; i < m_nPolygons; i++) {
+		for (int j = 0; j < m_ppPolygons[i]->m_nVertices; j++) {
+			XMFLOAT3 pos = m_ppPolygons[i]->m_pVertices[j].m_xmf3Position;
+			if (pos.x < minX) minX = pos.x; if (pos.x > maxX) maxX = pos.x;
+			if (pos.y < minY) minY = pos.y; if (pos.y > maxY) maxY = pos.y;
+			if (pos.z < minZ) minZ = pos.z; if (pos.z > maxZ) maxZ = pos.z;
+		}
+	}
+
+	// 박스 중심과 크기 설정
+	XMFLOAT3 center((minX + maxX) * 0.5f, (minY + maxY) * 0.5f, (minZ + maxZ) * 0.5f);
+	XMFLOAT3 extents((maxX - minX) * 0.5f, (maxY - minY) * 0.5f, (maxZ - minZ) * 0.5f);
+	m_xmOOBB = BoundingOrientedBox(center, extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	file.close();
 }
 CModelMesh::~CModelMesh()

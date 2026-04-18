@@ -266,6 +266,7 @@ void CExplosiveObject::Animate(float fElapsedTime)
 	{
 		CGameObject::Animate(fElapsedTime);
 	}
+	
 }
 
 void CExplosiveObject::Render(HDC hDCFrameBuffer, CCamera *pCamera)
