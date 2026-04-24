@@ -300,9 +300,15 @@ void CScene::CheckObjectByBulletCollisions()
 			if (ppBullets[j]->m_bActive && m_ppObjects[i]->m_xmOOBB.Intersects(ppBullets[j]->m_xmOOBB)) 
 			{
 				CExplosiveObject *pExplosiveObject = (CExplosiveObject *)m_ppObjects[i];
-				pExplosiveObject->m_bBlowingUp = true;
+				// 이미 폭발 중이면 점수 안 올림
+				if (!pExplosiveObject->m_bBlowingUp)
+				{
+					pExplosiveObject->m_bBlowingUp = true;
+					m_pPlayer->m_pScore += 1; // 여기서만 점수 증가
+				}
+
 				ppBullets[j]->m_bActive = false;
-				++m_pPlayer->m_pScore;
+				break;
 			}
 		}
 	}
@@ -352,5 +358,6 @@ void CScene::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 	m_pWallsObject->Render(hDCFrameBuffer, pCamera);
 
 	for (int i = 0; i < m_nObjects; i++) m_ppObjects[i]->Render(hDCFrameBuffer, pCamera);
+	
 }
 

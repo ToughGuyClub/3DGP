@@ -113,6 +113,16 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 			case VK_SPACE:
 				((CAirplanePlayer*)m_pPlayer)->FireBullet(m_pSelectedObject);
 				break;
+			case 'R':
+			case 'r':
+				if (m_pPlayer->m_bGameOver)
+				{
+					m_pPlayer->m_bGameOver = false;
+					m_pPlayer->m_playerHP = 10;
+					m_pPlayer->m_pScore = 0;       // 점수 초기화
+					
+				}
+				break;
 			default:
 				m_pScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
 				break;
@@ -233,19 +243,24 @@ void CGameFramework::FrameAdvance()
 
 	m_GameTimer.Tick(0.0f);
 
-	ProcessInput();
+	if (!m_pPlayer->m_bGameOver) ProcessInput();
 
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	m_pPlayer->Animate(fTimeElapsed);
-	m_pScene->Animate(fTimeElapsed);
-	
+	if (!m_pPlayer->m_bGameOver) {
+		m_pPlayer->Animate(fTimeElapsed);
+		m_pScene->Animate(fTimeElapsed);
+		if (m_pPlayer->m_playerHP <= 0.0f) {
+			m_pPlayer->m_bGameOver = true;
+		}
+	}
 	
 
 	ClearFrameBuffer(RGB(255, 255, 255));
 
 	m_pScene->Render(m_hDCFrameBuffer, m_pPlayer->m_pCamera);
 	m_pPlayer->Render(m_hDCFrameBuffer, m_pPlayer->m_pCamera);
-	
+
+
 	XMFLOAT3 xmf3PlayerPos = m_pPlayer->GetPosition();
 	for (int i = 0; i < m_pScene->m_nObjects; i++)
 	{

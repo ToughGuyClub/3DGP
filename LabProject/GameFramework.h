@@ -34,7 +34,7 @@ private:
 	CPlayer						*m_pPlayer = NULL;
 	CScene						*m_pScene = NULL;
 	CGameObject					*m_pSelectedObject = NULL;
-
+	
 public:
 	void BuildFrameBuffer();
 	void ClearFrameBuffer(DWORD dwColor);

@@ -140,28 +140,7 @@ void CPlayer::OnUpdateTransform()
 void CPlayer::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 {
 	CGameObject::Render(hDCFrameBuffer, pCamera);
-	// 1. 위치 정보를 문자열로 변환
-	char szBuffer[128];
-	sprintf_s(szBuffer, "Player Pos: X:%.2f, Y:%.2f, Z:%.2f", m_xmf3Position.x, m_xmf3Position.y, m_xmf3Position.z);
 
-	// 2. 텍스트 색상 및 배경 설정
-	SetTextColor(hDCFrameBuffer, RGB(255, 0, 0));    // 빨간색 글씨
-	SetBkMode(hDCFrameBuffer, TRANSPARENT);         // 배경 투명하게
-
-	// 3. 화면 왼쪽 상단(10, 10) 좌표에 출력
-	TextOutA(hDCFrameBuffer, 10, 10, szBuffer, (int)strlen(szBuffer));
-
-	sprintf_s(szBuffer, "Player Pos: (%.2f, %.2f, %.2f) / Size: (%.2f, %.2f, %.2f)",
-		m_xmOOBB.Center.x, m_xmOOBB.Center.y, m_xmOOBB.Center.z,
-		m_xmOOBB.Extents.x, m_xmOOBB.Extents.y, m_xmOOBB.Extents.z);
-
-	SetTextColor(hDCFrameBuffer, RGB(0, 255, 0)); // 초록색 글씨
-	SetBkMode(hDCFrameBuffer, TRANSPARENT);
-	TextOutA(hDCFrameBuffer, 10, 30, szBuffer, (int)strlen(szBuffer));
-
-
-	
-	// 2. 체력바 그리기 (HP 비율 계산)
 	float fHealthRatio = m_playerHP / 10.0;
 	if (fHealthRatio < 0.0f) fHealthRatio = 0.0f;
 
@@ -170,12 +149,12 @@ void CPlayer::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 	int nPosX = 10;       // 화면 위치 X
 	int nPosY = 50;       // 화면 위치 Y
 
-	// 배경 (회색)
+
 	HBRUSH hGrayBrush = ::CreateSolidBrush(RGB(100, 100, 100));
 	::SelectObject(hDCFrameBuffer, hGrayBrush);
 	::Rectangle(hDCFrameBuffer, nPosX, nPosY, nPosX + nBarWidth, nPosY + nBarHeight);
 
-	// 실제 체력 (초록색)
+
 	COLORREF hpColor = (fHealthRatio > 0.3f) ? RGB(0, 255, 0) : RGB(255, 0, 0); // 30% 이하일 때 빨간색
 	HBRUSH hHPBrush = ::CreateSolidBrush(hpColor);
 	::SelectObject(hDCFrameBuffer, hHPBrush);
@@ -187,11 +166,9 @@ void CPlayer::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 	char szScoreBuffer[64];
 	sprintf_s(szScoreBuffer, "Score: %d", m_pScore);
 
-	// 2. 텍스트 설정
 	SetTextColor(hDCFrameBuffer, RGB(255, 255, 0)); // 노란색 글씨
 	SetBkMode(hDCFrameBuffer, TRANSPARENT);        // 배경 투명
 
-	// 3. 체력바 좌표(nPosX: 50, nPosY: 50, 높이: 20)를 고려하여 조금 아래(75 정도)에 출력
 	TextOutA(hDCFrameBuffer, 50, 75, szScoreBuffer, (int)strlen(szScoreBuffer));
 }
 
@@ -238,6 +215,24 @@ void CAirplanePlayer::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 	CPlayer::Render(hDCFrameBuffer, pCamera);
 
 	for (int i = 0; i < BULLETS; i++) if (m_ppBullets[i]->m_bActive) m_ppBullets[i]->Render(hDCFrameBuffer, pCamera);
+	if (m_bGameOver)
+	{
+		// 배경을 살짝 어둡게 (Optional: 선택사항)
+		// SetBkColor(hDCFrameBuffer, RGB(50, 50, 50)); 
+
+		SetTextColor(hDCFrameBuffer, RGB(255, 0, 0)); // 빨간색
+		SetBkMode(hDCFrameBuffer, TRANSPARENT);
+
+		// 폰트 설정 (더 크게 보고 싶다면 CreateFont로 폰트 생성 후 적용)
+		TextOutA(hDCFrameBuffer, 250, 200, "GAME OVER", 9);
+
+		// 점수 출력
+		char szScore[64];
+		sprintf_s(szScore, "Final Score: %d", m_pScore);
+		TextOutA(hDCFrameBuffer, 250, 230, szScore, (int)strlen(szScore));
+
+		TextOutA(hDCFrameBuffer, 250, 260, "Press R to Restart", 18);
+	}
 }
 
 void CAirplanePlayer::FireBullet(CGameObject *pSelectedObject)
@@ -272,5 +267,6 @@ void CAirplanePlayer::FireBullet(CGameObject *pSelectedObject)
 		pBulletObject->SetFirePosition(xmf3FirePosition);
 		pBulletObject->SetMovingDirection(xmf3Direction);
 		pBulletObject->SetActive(true);
+		pBulletObject->SetMovingSpeed(150.0f);
 	}
 }

@@ -26,6 +26,7 @@ public:
 	//Ã¼·Â
 	int							m_playerHP = 10;
 	int							m_pScore = 0;
+	bool m_bGameOver = false;
 
 	void SetPosition(float x, float y, float z);
 	void LookAt(XMFLOAT3& xmf3LookAt, XMFLOAT3& xmf3Up);

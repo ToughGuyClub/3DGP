@@ -237,6 +237,7 @@ CExplosiveObject::CExplosiveObject()
 
 		mm_ppBullets[i]->SetActive(false);
 	}
+	m_fFireTimer = (float)(rand() % 5000) / 1000.0f;
 }
 
 CExplosiveObject::~CExplosiveObject()
@@ -255,7 +256,7 @@ void CExplosiveObject::Animate(float fElapsedTime)
 
 	if (m_bBlowingUp)
 	{
-		// ... (기존 폭발 로직 동일) ...
+		
 		m_fElapsedTimes += fElapsedTime;
 		if (m_fElapsedTimes <= m_fDuration)
 		{
@@ -286,21 +287,21 @@ void CExplosiveObject::Animate(float fElapsedTime)
 			// 플레이어에게 다가감
 			xmf3Direction = Vector3::Normalize(xmf3Direction);
 			SetMovingDirection(xmf3Direction);
-			SetMovingSpeed(10.0f); // 이동 속도 복구 (필요시)
+			SetMovingSpeed(10.0f); 
 		}
 		else
 		{
 
 			
 		}
-		// 2. 공격 로직: 타이머를 갱신하고 일정 시간마다 발사
+		
 		m_fFireTimer += fElapsedTime;
 		if (m_fFireTimer >= 5.0f) // 1초마다 발사
 		{
 			FireBullett(P_distance); // 플레이어 위치로 발사
 			m_fFireTimer = 0.0f;     // 타이머 초기화
 		}
-		// 3. 원래의 이동/회전 애니메이션 수행
+		
 		CGameObject::Animate(fElapsedTime);
 	}
 	for (int i = 0; i < ENEMY_BULLETS; i++)
