@@ -238,12 +238,24 @@ void CGameFramework::FrameAdvance()
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
 	m_pPlayer->Animate(fTimeElapsed);
 	m_pScene->Animate(fTimeElapsed);
+	
+	
 
 	ClearFrameBuffer(RGB(255, 255, 255));
 
 	m_pScene->Render(m_hDCFrameBuffer, m_pPlayer->m_pCamera);
 	m_pPlayer->Render(m_hDCFrameBuffer, m_pPlayer->m_pCamera);
-
+	
+	XMFLOAT3 xmf3PlayerPos = m_pPlayer->GetPosition();
+	for (int i = 0; i < m_pScene->m_nObjects; i++)
+	{
+		
+		CExplosiveObject* pEnemy = (CExplosiveObject*)m_pScene->m_ppObjects[i];
+		if (pEnemy) {
+			pEnemy->SetPlayerPosition(xmf3PlayerPos);
+			
+		}
+	}
 	PresentFrameBuffer();
 
 	m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);

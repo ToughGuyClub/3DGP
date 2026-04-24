@@ -63,8 +63,7 @@ void CMesh::Render(HDC hDCFrameBuffer, XMFLOAT4X4& xmf4x4World, CCamera* pCamera
 		int nVertices = m_ppPolygons[j]->m_nVertices;
 		CVertex* pVertices = m_ppPolygons[j]->m_pVertices;
 
-		// POINT 배열 준비 (가급적 동적 할당보다는 고정 크기 배열이나 vector 권장)
-		POINT ptPoints[200]; // 정점이 100개 이하라고 가정
+		POINT ptPoints[200];
 		int nValidVertices = 0;
 
 		for (int i = 0; i < nVertices; i++)
@@ -79,7 +78,7 @@ void CMesh::Render(HDC hDCFrameBuffer, XMFLOAT4X4& xmf4x4World, CCamera* pCamera
 			}
 		}
 
-		// 면을 채워서 그리기
+
 		if (nValidVertices > 2)
 		{
 			::Polygon(hDCFrameBuffer, ptPoints, nValidVertices);
@@ -467,8 +466,7 @@ CModelMesh::CModelMesh(const char* pFileName) : CMesh(0)
 			std::vector<int> faceIndices;
 			std::string vertexStr;
 			while (ss >> vertexStr) {
-				// obj의 인덱스는 1부터 시작하므로 -1을 해줍니다.
-				// v/vt/vn 형식일 경우 첫 번째 숫자(v)만 추출합니다.
+			
 				size_t pos = vertexStr.find('/');
 				int index = std::stoi(vertexStr.substr(0, pos)) - 1;
 				faceIndices.push_back(index);
@@ -477,8 +475,7 @@ CModelMesh::CModelMesh(const char* pFileName) : CMesh(0)
 		}
 	}
 
-	// 부모 클래스의 m_nPolygons 초기화 (CMesh 구조에 따라 다를 수 있음)
-	// 여기서는 동적으로 생성된 faces의 개수만큼 할당합니다.
+	
 	this->m_nPolygons = (int)faces.size();
 	this->m_ppPolygons = new CPolygon * [m_nPolygons];
 

@@ -226,28 +226,41 @@ CMesh *CExplosiveObject::m_pExplosionMesh = NULL;
 
 CExplosiveObject::CExplosiveObject()
 {
+	CCubeMesh* pBulletMesh = new CCubeMesh(1.0f, 1.0f, 1.0f);
+	for (int i = 0; i < ENEMY_BULLETS; i++)
+	{
+		mm_ppBullets[i] = new CBulletObject(150.0f);
+
+		// [중요] 메쉬가 설정되어 있어야 Render가 가능합니다!
+		// 플레이어 총알이 사용하는 메쉬를 똑같이 넣어주세요.
+		mm_ppBullets[i]->SetMesh(pBulletMesh);
+
+		mm_ppBullets[i]->SetActive(false);
+	}
 }
 
 CExplosiveObject::~CExplosiveObject()
 {
+	for (int i = 0; i < ENEMY_BULLETS; i++) delete mm_ppBullets[i];
 }
 
 void CExplosiveObject::PrepareExplosion()
 {
-	for (int i = 0; i < EXPLOSION_DEBRISES; i++) XMStoreFloat3(&m_pxmf3SphereVectors[i], ::RandomUnitVectorOnSphere());
+	for (int i = 0; i < 40; i++) XMStoreFloat3(&m_pxmf3SphereVectors[i], ::RandomUnitVectorOnSphere());
 
 	m_pExplosionMesh = new CCubeMesh(0.5f, 0.5f, 0.5f);
 }
-
 void CExplosiveObject::Animate(float fElapsedTime)
 {
+
 	if (m_bBlowingUp)
 	{
+		// ... (기존 폭발 로직 동일) ...
 		m_fElapsedTimes += fElapsedTime;
 		if (m_fElapsedTimes <= m_fDuration)
 		{
 			XMFLOAT3 xmf3Position = GetPosition();
-			for (int i = 0; i < EXPLOSION_DEBRISES; i++)
+			for (int i = 0; i < 40; i++)
 			{
 				m_pxmf4x4Transforms[i] = Matrix4x4::Identity();
 				m_pxmf4x4Transforms[i]._41 = xmf3Position.x + m_pxmf3SphereVectors[i].x * m_fExplosionSpeed * m_fElapsedTimes;
@@ -264,11 +277,74 @@ void CExplosiveObject::Animate(float fElapsedTime)
 	}
 	else
 	{
+		XMFLOAT3 xmf3MyPosition = GetPosition();
+		XMFLOAT3 xmf3Direction = Vector3::Subtract(P_distance, xmf3MyPosition);
+		float fDistance = Vector3::Length(xmf3Direction);
+
+		if (fDistance > 20.0f)
+		{
+			// 플레이어에게 다가감
+			xmf3Direction = Vector3::Normalize(xmf3Direction);
+			SetMovingDirection(xmf3Direction);
+			SetMovingSpeed(10.0f); // 이동 속도 복구 (필요시)
+		}
+		else
+		{
+
+			
+		}
+		// 2. 공격 로직: 타이머를 갱신하고 일정 시간마다 발사
+		m_fFireTimer += fElapsedTime;
+		if (m_fFireTimer >= 5.0f) // 1초마다 발사
+		{
+			FireBullett(P_distance); // 플레이어 위치로 발사
+			m_fFireTimer = 0.0f;     // 타이머 초기화
+		}
+		// 3. 원래의 이동/회전 애니메이션 수행
 		CGameObject::Animate(fElapsedTime);
 	}
-	
+	for (int i = 0; i < ENEMY_BULLETS; i++)
+	{
+		if (mm_ppBullets[i]->m_bActive)
+		{
+			mm_ppBullets[i]->enemyAnimate(fElapsedTime);
+		}
+	}
+	UpdateBoundingBox();
 }
+void CExplosiveObject::FireBullett(XMFLOAT3 xmf3PlayerPosition)
+{
+	CBulletObject* pBulletObject = NULL;
 
+	for (int i = 0; i < ENEMY_BULLETS; i++) {
+		if (!mm_ppBullets[i]->m_bActive) {
+			pBulletObject = mm_ppBullets[i];
+			break;
+		}
+	}
+
+	if (pBulletObject)
+	{
+		XMFLOAT3 xmf3MyPosition = GetPosition();
+
+	
+		XMFLOAT3 xmf3Direction = Vector3::Subtract(xmf3PlayerPosition, xmf3MyPosition);
+		xmf3Direction = Vector3::Normalize(xmf3Direction);
+
+		XMFLOAT3 xmf3FirePosition = Vector3::Add(xmf3MyPosition, Vector3::ScalarProduct(xmf3Direction, 2.0f, false));
+
+		pBulletObject->m_xmf4x4World = Matrix4x4::Identity(); // 월드 행렬 초기화
+		pBulletObject->m_xmf4x4World._41 = xmf3FirePosition.x;
+		pBulletObject->m_xmf4x4World._42 = xmf3FirePosition.y;
+		pBulletObject->m_xmf4x4World._43 = xmf3FirePosition.z;
+
+		pBulletObject->SetFirePosition(xmf3FirePosition);
+		pBulletObject->SetMovingDirection(xmf3Direction);
+		pBulletObject->SetMovingSpeed(10.0f);
+		pBulletObject->SetActive(true);
+	
+	}
+}
 void CExplosiveObject::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 {
 	if (m_bBlowingUp)
@@ -288,6 +364,14 @@ void CExplosiveObject::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 	else
 	{
 		CGameObject::Render(hDCFrameBuffer, pCamera);
+	}
+	
+	for (int i = 0; i < ENEMY_BULLETS; i++)
+	{
+		if (mm_ppBullets[i]->m_bActive)
+		{
+			mm_ppBullets[i]->Render(hDCFrameBuffer, pCamera);
+		}
 	}
 }
 
@@ -344,3 +428,23 @@ void CBulletObject::Animate(float fElapsedTime)
 	if (Vector3::Distance(m_xmf3FirePosition, GetPosition()) > m_fBulletEffectiveRange) SetActive(false);
 }
 
+void CBulletObject::enemyAnimate(float fElapsedTime)
+{
+
+	if (m_fMovingSpeed > 0.0f)
+	{
+		XMFLOAT3 xmf3Shift = Vector3::ScalarProduct(m_xmf3MovingDirection, m_fMovingSpeed * fElapsedTime);
+
+		
+		XMFLOAT3 xmf3Pos = GetPosition();
+		xmf3Pos = Vector3::Add(xmf3Pos, xmf3Shift);
+		SetPosition(xmf3Pos);
+	}
+	UpdateBoundingBox();
+	XMFLOAT3 xmf3Dist = Vector3::Subtract(GetPosition(), m_xmf3FirePosition);
+	if (Vector3::Length(xmf3Dist) > m_fBulletEffectiveRange)
+	{
+		SetActive(false);
+		SetPosition(0.0f, -1000.0f, 0.0f); // 화면 밖으로 숨김
+	}
+}

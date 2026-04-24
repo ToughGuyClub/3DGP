@@ -16,6 +16,7 @@ CPlayer::CPlayer()
 
 	m_xmf3CameraOffset = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	m_xmf3Velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
 }
 
 CPlayer::~CPlayer()
@@ -111,12 +112,14 @@ void CPlayer::Update(float fTimeElapsed)
 
 	m_pCamera->Update(this, m_xmf3Position, fTimeElapsed);
 	m_pCamera->GenerateViewMatrix();
-
+	UpdateBoundingBox();
 	XMFLOAT3 xmf3Deceleration = Vector3::Normalize(Vector3::ScalarProduct(m_xmf3Velocity, -1.0f));
 	float fLength = Vector3::Length(m_xmf3Velocity);
 	float fDeceleration = m_fFriction * fTimeElapsed;
 	if (fDeceleration > fLength) fDeceleration = fLength;
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, xmf3Deceleration, fDeceleration);
+
+
 }
 
 void CPlayer::Animate(float fElapsedTime)
@@ -137,6 +140,59 @@ void CPlayer::OnUpdateTransform()
 void CPlayer::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 {
 	CGameObject::Render(hDCFrameBuffer, pCamera);
+	// 1. 위치 정보를 문자열로 변환
+	char szBuffer[128];
+	sprintf_s(szBuffer, "Player Pos: X:%.2f, Y:%.2f, Z:%.2f", m_xmf3Position.x, m_xmf3Position.y, m_xmf3Position.z);
+
+	// 2. 텍스트 색상 및 배경 설정
+	SetTextColor(hDCFrameBuffer, RGB(255, 0, 0));    // 빨간색 글씨
+	SetBkMode(hDCFrameBuffer, TRANSPARENT);         // 배경 투명하게
+
+	// 3. 화면 왼쪽 상단(10, 10) 좌표에 출력
+	TextOutA(hDCFrameBuffer, 10, 10, szBuffer, (int)strlen(szBuffer));
+
+	sprintf_s(szBuffer, "Player Pos: (%.2f, %.2f, %.2f) / Size: (%.2f, %.2f, %.2f)",
+		m_xmOOBB.Center.x, m_xmOOBB.Center.y, m_xmOOBB.Center.z,
+		m_xmOOBB.Extents.x, m_xmOOBB.Extents.y, m_xmOOBB.Extents.z);
+
+	SetTextColor(hDCFrameBuffer, RGB(0, 255, 0)); // 초록색 글씨
+	SetBkMode(hDCFrameBuffer, TRANSPARENT);
+	TextOutA(hDCFrameBuffer, 10, 30, szBuffer, (int)strlen(szBuffer));
+
+
+	
+	// 2. 체력바 그리기 (HP 비율 계산)
+	float fHealthRatio = m_playerHP / 10.0;
+	if (fHealthRatio < 0.0f) fHealthRatio = 0.0f;
+
+	int nBarWidth = 200;  // 체력바 전체 가로 길이
+	int nBarHeight = 20;  // 체력바 세로 높이
+	int nPosX = 10;       // 화면 위치 X
+	int nPosY = 50;       // 화면 위치 Y
+
+	// 배경 (회색)
+	HBRUSH hGrayBrush = ::CreateSolidBrush(RGB(100, 100, 100));
+	::SelectObject(hDCFrameBuffer, hGrayBrush);
+	::Rectangle(hDCFrameBuffer, nPosX, nPosY, nPosX + nBarWidth, nPosY + nBarHeight);
+
+	// 실제 체력 (초록색)
+	COLORREF hpColor = (fHealthRatio > 0.3f) ? RGB(0, 255, 0) : RGB(255, 0, 0); // 30% 이하일 때 빨간색
+	HBRUSH hHPBrush = ::CreateSolidBrush(hpColor);
+	::SelectObject(hDCFrameBuffer, hHPBrush);
+	::Rectangle(hDCFrameBuffer, nPosX, nPosY, nPosX + (int)(nBarWidth * fHealthRatio), nPosY + nBarHeight);
+
+	::DeleteObject(hGrayBrush);
+	::DeleteObject(hHPBrush);
+
+	char szScoreBuffer[64];
+	sprintf_s(szScoreBuffer, "Score: %d", m_pScore);
+
+	// 2. 텍스트 설정
+	SetTextColor(hDCFrameBuffer, RGB(255, 255, 0)); // 노란색 글씨
+	SetBkMode(hDCFrameBuffer, TRANSPARENT);        // 배경 투명
+
+	// 3. 체력바 좌표(nPosX: 50, nPosY: 50, 높이: 20)를 고려하여 조금 아래(75 정도)에 출력
+	TextOutA(hDCFrameBuffer, 50, 75, szScoreBuffer, (int)strlen(szScoreBuffer));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////

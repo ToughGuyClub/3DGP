@@ -2,9 +2,10 @@
 
 #include "Mesh.h"
 #include "Camera.h"
-
+const int ENEMY_BULLETS = 10;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+class CBulletObject;
 class CGameObject
 {
 public:
@@ -77,6 +78,9 @@ public:
 	CExplosiveObject();
 	virtual ~CExplosiveObject();
 
+	CBulletObject* mm_ppBullets[ENEMY_BULLETS];
+	float m_fFireTimer = 0.0f;
+
 	bool						m_bBlowingUp = false;
 
 	XMFLOAT4X4					m_pxmf4x4Transforms[EXPLOSION_DEBRISES];
@@ -85,10 +89,15 @@ public:
 	float						m_fDuration = 2.5f;
 	float						m_fExplosionSpeed = 10.0f;
 	float						m_fExplosionRotation = 720.0f;
+	
+	//플레이어와의 거리저장용 변수
+	XMFLOAT3					P_distance;
+
 
 	virtual void Animate(float fElapsedTime);
+	void FireBullett(XMFLOAT3 xmf3PlayerPosition);
 	virtual void Render(HDC hDCFrameBuffer, CCamera *pCamera);
-
+	void SetPlayerPosition(XMFLOAT3 p_distance) { P_distance = p_distance; }
 public:
 	static CMesh				*m_pExplosionMesh;
 	static XMFLOAT3				m_pxmf3SphereVectors[EXPLOSION_DEBRISES];
@@ -119,6 +128,7 @@ public:
 	float						m_fBulletEffectiveRange = 50.0f;
 	XMFLOAT3					m_xmf3FirePosition;
 	float						m_fRotationAngle = 0.0f;
+	void enemyAnimate(float fElapsedTime);
 
 	void SetFirePosition(XMFLOAT3 xmf3FirePosition);
 };

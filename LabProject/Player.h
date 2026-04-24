@@ -23,6 +23,10 @@ public:
 	float						m_player_speed = 0.15f;
 	CCamera						*m_pCamera = NULL;
 
+	//Ã¼·Â
+	int							m_playerHP = 10;
+	int							m_pScore = 0;
+
 	void SetPosition(float x, float y, float z);
 	void LookAt(XMFLOAT3& xmf3LookAt, XMFLOAT3& xmf3Up);
 
@@ -36,6 +40,8 @@ public:
 	virtual void OnUpdateTransform();
 	virtual void Animate(float fElapsedTime);
 	virtual void Render(HDC hDCFrameBuffer, CCamera *pCamera);
+
+	
 };
 
 #define BULLETS					30
