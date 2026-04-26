@@ -300,7 +300,7 @@ void CScene::CheckObjectByBulletCollisions()
 			if (ppBullets[j]->m_bActive && m_ppObjects[i]->m_xmOOBB.Intersects(ppBullets[j]->m_xmOOBB)) 
 			{
 				CExplosiveObject *pExplosiveObject = (CExplosiveObject *)m_ppObjects[i];
-				// 이미 폭발 중이면 점수 안 올림
+				
 				if (!pExplosiveObject->m_bBlowingUp)
 				{
 					pExplosiveObject->m_bBlowingUp = true;

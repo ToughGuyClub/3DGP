@@ -256,7 +256,17 @@ void CGameFramework::FrameAdvance()
 	
 
 	ClearFrameBuffer(RGB(255, 255, 255));
+	RECT rcClient;
+	GetClientRect(m_hWnd, &rcClient); // hWnd는 윈도우 핸들
 
+	// 2. 원하는 배경색 브러시 생성 (예: 진한 파란색 또는 검은색)
+	HBRUSH hBackgroundBrush = ::CreateSolidBrush(RGB(20, 20, 40));
+
+	// 3. 전체 영역을 해당 색으로 채움
+	::FillRect(m_hDCFrameBuffer, &rcClient, hBackgroundBrush);
+
+	// 4. 사용한 브러시 삭제 (메모리 누수 방지)
+	::DeleteObject(hBackgroundBrush);
 	m_pScene->Render(m_hDCFrameBuffer, m_pPlayer->m_pCamera);
 	m_pPlayer->Render(m_hDCFrameBuffer, m_pPlayer->m_pCamera);
 

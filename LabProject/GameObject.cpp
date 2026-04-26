@@ -231,8 +231,7 @@ CExplosiveObject::CExplosiveObject()
 	{
 		mm_ppBullets[i] = new CBulletObject(150.0f);
 
-		// [중요] 메쉬가 설정되어 있어야 Render가 가능합니다!
-		// 플레이어 총알이 사용하는 메쉬를 똑같이 넣어주세요.
+
 		mm_ppBullets[i]->SetMesh(pBulletMesh);
 
 		mm_ppBullets[i]->SetActive(false);
